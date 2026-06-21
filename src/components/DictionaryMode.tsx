@@ -6,6 +6,7 @@ interface Definition {
   phonetic?: string
   partOfSpeech?: string
   definition?: string
+  translation?: string
   missing?: boolean
 }
 
@@ -16,6 +17,48 @@ interface TooltipState extends Definition {
 }
 
 const definitionCache = new Map<string, Definition>()
+
+const polishedDefinitions: Record<string, Pick<Definition, 'partOfSpeech' | 'definition'>> = {
+  commuter: {
+    partOfSpeech: 'noun',
+    definition: 'A person who travels regularly between home and a workplace or place of study.',
+  },
+  commuters: {
+    partOfSpeech: 'plural noun',
+    definition: 'People who travel regularly between home and a workplace or place of study.',
+  },
+}
+
+function cleanDefinition(definition: string) {
+  return definition
+    .replace(/\s*\([^)]*etymolog[^)]*\)/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function definitionScore(definition: string) {
+  const cleaned = cleanDefinition(definition)
+  let score = Math.min(cleaned.length, 180)
+  if (cleaned.length < 30) score -= 70
+  if (/^(one|someone) who\b/i.test(cleaned)) score -= 120
+  if (/^a person who\b/i.test(cleaned)) score -= 55
+  if (/used other than (figuratively|idiomatically)/i.test(cleaned)) score -= 140
+  if (/etymolog/i.test(definition)) score -= 100
+  return score
+}
+
+async function translateWord(word: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|es`)
+    if (!response.ok) return undefined
+    const data = await response.json() as { responseData?: { translatedText?: string } }
+    const translation = data.responseData?.translatedText?.trim()
+    if (!translation || /MYMEMORY WARNING/i.test(translation) || translation.toLocaleLowerCase('en') === word.toLocaleLowerCase('en')) return undefined
+    return translation.toLocaleLowerCase('es')
+  } catch {
+    return undefined
+  }
+}
 
 function wordAtPoint(x: number, y: number): string | null {
   const caretDocument = document as Document & {
@@ -49,6 +92,14 @@ async function lookupWord(word: string): Promise<Definition> {
   const cached = definitionCache.get(key)
   if (cached) return cached
 
+  const translationPromise = translateWord(key)
+  const polished = polishedDefinitions[key]
+  if (polished) {
+    const result = { word, ...polished, translation: await translationPromise }
+    definitionCache.set(key, result)
+    return result
+  }
+
   try {
     const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`)
     if (!response.ok) throw new Error('No entry')
@@ -59,17 +110,25 @@ async function lookupWord(word: string): Promise<Definition> {
       meanings?: Array<{ partOfSpeech?: string; definitions?: Array<{ definition?: string }> }>
     }>
     const entry = data[0]
-    const meaning = entry?.meanings?.find((item) => item.definitions?.[0]?.definition)
+    const candidates = data.flatMap((item) =>
+      (item.meanings ?? []).flatMap((meaning) =>
+        (meaning.definitions ?? [])
+          .filter((definition) => definition.definition)
+          .map((definition) => ({ partOfSpeech: meaning.partOfSpeech, definition: definition.definition! })),
+      ),
+    )
+    const best = candidates.sort((a, b) => definitionScore(b.definition) - definitionScore(a.definition))[0]
     const result: Definition = {
       word: entry?.word ?? word,
       phonetic: entry?.phonetic ?? entry?.phonetics?.find((item) => item.text)?.text,
-      partOfSpeech: meaning?.partOfSpeech,
-      definition: meaning?.definitions?.[0]?.definition,
+      partOfSpeech: best?.partOfSpeech,
+      definition: best ? cleanDefinition(best.definition) : undefined,
+      translation: await translationPromise,
     }
     definitionCache.set(key, result)
     return result
   } catch {
-    const result = { word, missing: true }
+    const result = { word, translation: await translationPromise, missing: true }
     definitionCache.set(key, result)
     return result
   }
@@ -152,7 +211,9 @@ export function DictionaryMode() {
             <>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-display text-2xl font-semibold capitalize">{tooltip.word}</p>
+                  <p className="font-display text-2xl font-semibold capitalize">
+                    {tooltip.word}{tooltip.translation && <span className="font-normal text-fuchsia-700"> ({tooltip.translation})</span>}
+                  </p>
                   <p className="mt-0.5 text-xs text-violet-600">
                     {[tooltip.partOfSpeech, tooltip.phonetic].filter(Boolean).join(' · ') || 'English word'}
                   </p>
