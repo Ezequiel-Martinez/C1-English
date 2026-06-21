@@ -18,7 +18,7 @@ interface TooltipState extends Definition {
 
 const definitionCache = new Map<string, Definition>()
 
-const polishedDefinitions: Record<string, Pick<Definition, 'partOfSpeech' | 'definition'>> = {
+const polishedDefinitions: Record<string, Pick<Definition, 'partOfSpeech' | 'definition' | 'translation'>> = {
   commuter: {
     partOfSpeech: 'noun',
     definition: 'A person who travels regularly between home and a workplace or place of study.',
@@ -27,7 +27,32 @@ const polishedDefinitions: Record<string, Pick<Definition, 'partOfSpeech' | 'def
     partOfSpeech: 'plural noun',
     definition: 'People who travel regularly between home and a workplace or place of study.',
   },
+  'rule out': {
+    partOfSpeech: 'phrasal verb',
+    definition: 'To reject, eliminate, or exclude something as a possibility.',
+    translation: 'descartar',
+  },
+  'end up': {
+    partOfSpeech: 'phrasal verb',
+    definition: 'To eventually reach a particular situation or result, often unexpectedly.',
+    translation: 'acabar · terminar',
+  },
+  'mess up': {
+    partOfSpeech: 'phrasal verb',
+    definition: 'To handle something badly, make a mistake, or cause something to fail.',
+    translation: 'arruinar · estropear',
+  },
+  'back up': {
+    partOfSpeech: 'phrasal verb',
+    definition: 'To make a copy of digital information so it can be recovered later.',
+    translation: 'hacer una copia de seguridad',
+  },
 }
+
+const phrasalParticles = new Set([
+  'about', 'across', 'after', 'along', 'around', 'away', 'back', 'by', 'down', 'for',
+  'forward', 'in', 'into', 'off', 'on', 'out', 'over', 'through', 'to', 'up', 'with',
+])
 
 function cleanDefinition(definition: string) {
   return definition
@@ -60,7 +85,7 @@ async function translateWord(word: string): Promise<string | undefined> {
   }
 }
 
-function wordAtPoint(x: number, y: number): string | null {
+function termAtPoint(x: number, y: number): string | null {
   const caretDocument = document as Document & {
     caretRangeFromPoint?: (x: number, y: number) => Range | null
     caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null
@@ -76,15 +101,34 @@ function wordAtPoint(x: number, y: number): string | null {
 
   if (!position || position.node.nodeType !== Node.TEXT_NODE) return null
   const text = position.node.textContent ?? ''
-  let start = Math.min(position.offset, text.length)
-  let end = start
-  const isWordCharacter = (character: string) => /[A-Za-zÀ-ÖØ-öø-ÿ'’-]/.test(character)
+  const tokens = Array.from(text.matchAll(/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g)).map((match) => ({
+    value: match[0],
+    start: match.index ?? 0,
+    end: (match.index ?? 0) + match[0].length,
+  }))
+  const selectedIndex = tokens.findIndex((token) => position.offset >= token.start && position.offset <= token.end)
+  if (selectedIndex < 0) return null
 
-  while (start > 0 && isWordCharacter(text[start - 1])) start -= 1
-  while (end < text.length && isWordCharacter(text[end])) end += 1
+  const phraseAt = (start: number, length: number) => {
+    if (start < 0 || start + length > tokens.length) return null
+    return tokens.slice(start, start + length).map((token) => token.value).join(' ')
+  }
 
-  const word = text.slice(start, end).replace(/^[’'-]+|[’'-]+$/g, '')
-  return word.length > 1 ? word : null
+  // Prefer recognised three-word units, such as “put up with”.
+  for (const start of [selectedIndex - 2, selectedIndex - 1, selectedIndex]) {
+    const phrase = phraseAt(start, 3)
+    if (phrase && polishedDefinitions[phrase.toLocaleLowerCase('en')]) return phrase
+  }
+
+  // A verb followed by a common particle is treated as one hoverable unit.
+  for (const start of [selectedIndex - 1, selectedIndex]) {
+    const phrase = phraseAt(start, 2)
+    if (!phrase) continue
+    const [first, second] = phrase.toLocaleLowerCase('en').split(' ')
+    if (polishedDefinitions[`${first} ${second}`] || phrasalParticles.has(second)) return phrase
+  }
+
+  return tokens[selectedIndex].value.length > 1 ? tokens[selectedIndex].value : null
 }
 
 async function lookupWord(word: string): Promise<Definition> {
@@ -95,7 +139,7 @@ async function lookupWord(word: string): Promise<Definition> {
   const translationPromise = translateWord(key)
   const polished = polishedDefinitions[key]
   if (polished) {
-    const result = { word, ...polished, translation: await translationPromise }
+    const result = { word, ...polished, translation: polished.translation ?? await translationPromise }
     definitionCache.set(key, result)
     return result
   }
@@ -161,7 +205,7 @@ export function DictionaryMode() {
         return
       }
 
-      const word = wordAtPoint(event.clientX, event.clientY)
+      const word = termAtPoint(event.clientX, event.clientY)
       const key = word?.toLocaleLowerCase('en') ?? ''
       pointRef.current = { x: event.clientX, y: event.clientY }
       if (!key) {
