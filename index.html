@@ -14,5 +14,23 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        var isDevHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
+        var viteEntry = document.querySelector('script[type="module"][src$="/src/main.tsx"]')
+
+        if (!viteEntry || isDevHost) return
+
+        var stylesheet = document.createElement('link')
+        stylesheet.rel = 'stylesheet'
+        stylesheet.href = './dist/assets/index.css'
+        document.head.appendChild(stylesheet)
+
+        var script = document.createElement('script')
+        script.type = 'module'
+        script.src = './dist/assets/index.js'
+        document.body.appendChild(script)
+      })()
+    </script>
   </body>
 </html>

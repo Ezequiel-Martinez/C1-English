@@ -1,5 +1,11 @@
 node_modules/
-dist/
+dist/*
+!dist/
+!dist/index.html
+!dist/favicon.svg
+!dist/assets/
+!dist/assets/index.js
+!dist/assets/index.css
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
