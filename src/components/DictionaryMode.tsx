@@ -262,6 +262,11 @@ function pointInsideToken(node: Node, token: TextToken, x: number, y: number) {
   )
 }
 
+function canJoinTokens(text: string, first: TextToken, second: TextToken) {
+  const gap = text.slice(first.end, second.start)
+  return /^[ \t\u00a0]+$/.test(gap)
+}
+
 function termAtPoint(x: number, y: number): LookupTerm | null {
   const caretDocument = document as Document & {
     caretRangeFromPoint?: (x: number, y: number) => Range | null
@@ -289,7 +294,13 @@ function termAtPoint(x: number, y: number): LookupTerm | null {
 
   const phraseAt = (start: number, length: number) => {
     if (start < 0 || start + length > tokens.length) return null
-    return tokens.slice(start, start + length).map((token) => token.normalized).join(' ')
+    const phraseTokens = tokens.slice(start, start + length)
+    const canJoin = phraseTokens.every((token, index) => {
+      const nextToken = phraseTokens[index + 1]
+      return !nextToken || canJoinTokens(text, token, nextToken)
+    })
+    if (!canJoin) return null
+    return phraseTokens.map((token) => token.normalized).join(' ')
   }
 
   // Prefer recognised three-word units, such as “put up with”.
