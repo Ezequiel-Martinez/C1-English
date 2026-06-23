@@ -10,6 +10,7 @@ export interface SpeakingPrompt {
   instruction: string
   prompt: string
   notes: string[]
+  durationLabel?: string
 }
 
 export interface RecyclingChallenge {

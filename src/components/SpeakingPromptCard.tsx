@@ -14,7 +14,7 @@ export function SpeakingPromptCard({ lesson }: { lesson: Lesson }) {
         <div>
           <div className="mb-6 flex items-center gap-2 text-[#aec4b3]">
             <Mic2 size={17} />
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em]">60–90 seconds</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em]">{speaking.durationLabel ?? '60-90 seconds'}</p>
           </div>
           <h3 className="font-display text-3xl leading-tight sm:text-4xl">{speaking.prompt}</h3>
           <p className="mt-5 text-sm leading-6 text-white/60">{speaking.instruction}</p>

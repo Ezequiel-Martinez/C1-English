@@ -32,7 +32,8 @@ function getCycleDay(startDate: string): number | null {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const elapsed = Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1
-  return elapsed >= 1 && elapsed <= 90 ? elapsed : null
+  if (elapsed < 1) return null
+  return ((elapsed - 1) % 90) + 1
 }
 
 function SectionHeading({ step, title, description }: { step: string; title: string; description: string }) {
