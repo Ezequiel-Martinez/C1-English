@@ -1,7 +1,7 @@
 import { Files } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { Lesson } from '../types'
-import { buildEntireSessionPrompt } from '../lib/prompt'
+import { buildDetailedSessionPrompt, buildShortSessionPrompt } from '../lib/prompt'
 import { CopyPromptButton } from './CopyPromptButton'
 
 function collectAnswers(lesson: Lesson) {
@@ -35,17 +35,25 @@ export function SessionActions({ lesson }: { lesson: Lesson }) {
           <p className="text-sm font-bold">Ready for general feedback?</p>
           <p className="mt-1 text-xs leading-5 text-ink/50">
             {answerCount > 0
-              ? `${answerCount} completed ${answerCount === 1 ? 'response' : 'responses'} will be included. Empty tasks are ignored.`
-              : 'Write at least one response to create your session feedback prompt.'}
+              ? `${answerCount} completed ${answerCount === 1 ? 'response' : 'responses'} will be included. Choose short or detailed feedback.`
+              : 'Write at least one response to create your session feedback prompts.'}
           </p>
         </div>
       </div>
-      <CopyPromptButton
-        label="Copy entire session"
-        variant="session"
-        disabled={answerCount === 0}
-        getPrompt={() => buildEntireSessionPrompt(lesson, collectAnswers(lesson))}
-      />
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <CopyPromptButton
+          label="Short correction prompt"
+          variant="session"
+          disabled={answerCount === 0}
+          getPrompt={() => buildShortSessionPrompt(lesson, collectAnswers(lesson))}
+        />
+        <CopyPromptButton
+          label="Detailed correction prompt"
+          variant="default"
+          disabled={answerCount === 0}
+          getPrompt={() => buildDetailedSessionPrompt(lesson, collectAnswers(lesson))}
+        />
+      </div>
     </div>
   )
 }

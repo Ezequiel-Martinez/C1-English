@@ -1,6 +1,6 @@
 import type { Lesson } from '../types'
 
-export function buildEntireSessionPrompt(lesson: Lesson, answers: Record<string, string>) {
+function buildSessionTaskBlocks(lesson: Lesson, answers: Record<string, string>) {
   const taskBlocks = [...lesson.tasks, ...(lesson.extraTasks ?? [])]
     .filter((task) => answers[task.id]?.trim())
     .map((task, index) => `Task ${index + 1} — ${task.type}
@@ -21,6 +21,37 @@ Instruction: ${lesson.recyclingChallenge.instruction}
 Prompt: ${lesson.recyclingChallenge.prompt}
 My answer: ${answers.recycling.trim()}`)
   }
+
+  return taskBlocks
+}
+
+export function buildShortSessionPrompt(lesson: Lesson, answers: Record<string, string>) {
+  const taskBlocks = buildSessionTaskBlocks(lesson, answers)
+
+  return `Act as my professional C1 English teacher.
+
+Review my entire Day ${lesson.day} practice session, but keep the feedback very brief and easy to learn from.
+
+Day type: ${lesson.dayType}
+Target structure: ${lesson.targetStructure}
+Target lexical item: ${lesson.targetLexicalItem}
+Communicative function: ${lesson.communicativeFunction}
+
+${taskBlocks.length ? taskBlocks.join('\n\n---\n\n') : '[I have not written any answers yet.]'}
+
+For each completed task, give only:
+1. What I did well: one short sentence.
+2. Main weakness: one short sentence naming the biggest grammar, vocabulary, style, or argument problem.
+3. Correction: one corrected version of my answer.
+4. Learn this: one practical rule or micro-target for next time.
+
+Focus on big errors, repeated mistakes, and anything that blocks C1-level accuracy or clarity. Ignore small issues unless they are repeated or serious.
+
+Do not give scores, long explanations, multiple alternatives, or general praise. Be direct, kind, and teacher-like. If an answer is correct but below C1, say: "Correct, but below C1. Upgrade it."`
+}
+
+export function buildDetailedSessionPrompt(lesson: Lesson, answers: Record<string, string>) {
+  const taskBlocks = buildSessionTaskBlocks(lesson, answers)
 
   return `Act as my strict C1 English Grammar Activation Coach.
 
@@ -47,3 +78,5 @@ Then finish with:
 
 Be direct, practical, and correction-focused. Do not flatter me. If an answer is correct but below C1, say: “Correct, but below C1. Upgrade it.”`
 }
+
+export const buildEntireSessionPrompt = buildDetailedSessionPrompt

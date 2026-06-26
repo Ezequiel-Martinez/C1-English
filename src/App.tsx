@@ -199,7 +199,7 @@ export default function App() {
             <SectionHeading
               step="06 · Feedback"
               title="Review the complete session"
-              description="When you are finished, copy one general feedback prompt. Only responses you actually wrote will be included."
+              description="When you are finished, choose a short or detailed correction prompt. Only responses you actually wrote will be included."
             />
             <SessionActions lesson={lesson} />
           </section>
