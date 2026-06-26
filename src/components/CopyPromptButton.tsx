@@ -44,7 +44,7 @@ export function CopyPromptButton({ getPrompt, label = 'Copy correction prompt', 
         await copyText(getPrompt())
         setCopied(true)
       }}
-      className={`focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${copied ? 'bg-emerald-100 text-emerald-700' : variantClasses[variant]}`}
+      className={`focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-center text-xs font-bold leading-4 transition disabled:cursor-not-allowed disabled:opacity-40 ${copied ? 'bg-emerald-100 text-emerald-700' : variantClasses[variant]}`}
     >
       {copied ? <Check size={15} /> : <Copy size={15} />}
       {copied ? 'Prompt copied' : label}
