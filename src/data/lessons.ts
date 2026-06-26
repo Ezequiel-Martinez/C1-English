@@ -1821,6 +1821,108 @@ function makeRecyclingChallenge(seed: LessonSeed, source: LessonSeed, typeCode: 
   }
 }
 
+function requiredLexicalItem(seed: LessonSeed) {
+  return seed.targetLexicalItem.length <= 32 ? seed.targetLexicalItem : undefined
+}
+
+function makeExtraTasks(seed: LessonSeed, source: LessonSeed, typeCode: TypeCode): Task[] {
+  const lexicalItem = seed.targetLexicalItem
+  const requiredWord = requiredLexicalItem(seed)
+
+  if (typeCode === 'A') {
+    return [
+      task(
+        'extra-1',
+        'Optional accuracy drill',
+        `Write two connected C1 sentences. Use ${seed.targetStructure} deliberately and include "${lexicalItem}" naturally.`,
+        'A decision looked simple at first, but one hidden constraint changed what the choice really depended on.',
+        requiredWord,
+      ),
+      task(
+        'extra-2',
+        'Optional error prevention',
+        `Write one polished C1 sentence that performs this function: ${seed.communicativeFunction}`,
+        `Avoid this danger zone: ${seed.dangerZone}`,
+        requiredWord,
+      ),
+    ]
+  }
+
+  if (typeCode === 'B') {
+    return [
+      task(
+        'extra-1',
+        'Optional argument extension',
+        `Write four sentences: position, concession, challenge, and consequence. Use ${seed.targetStructure} and "${lexicalItem}" to control the argument.`,
+        'Claim: A team should delay a popular decision when the evidence is still incomplete.',
+        requiredWord,
+      ),
+      task(
+        'extra-2',
+        'Optional counterargument',
+        `Challenge the weak reasoning without sounding blunt. Make the response match this purpose: ${seed.communicativeFunction}`,
+        'Weak reasoning: If a plan is popular, it must be the right choice.',
+        requiredWord,
+      ),
+    ]
+  }
+
+  if (typeCode === 'C') {
+    return [
+      task(
+        'extra-1',
+        'Optional narrative control',
+        `Tell a four-sentence micro-story. Use ${seed.targetStructure} to control focus or sequence, and include "${lexicalItem}" naturally.`,
+        'A late discovery changed the result of a meeting that had seemed predictable.',
+        requiredWord,
+      ),
+      task(
+        'extra-2',
+        'Optional turning-point rewrite',
+        `Rewrite the plain event as two polished C1 sentences. Make the turning point clear and avoid this danger zone: ${seed.dangerZone}`,
+        'Plain event: The team ignored a warning. Later, the warning became the main issue.',
+        requiredWord,
+      ),
+    ]
+  }
+
+  if (typeCode === 'D') {
+    return [
+      task(
+        'extra-1',
+        'Optional register upgrade',
+        `Rewrite the informal version in a controlled professional register. Use ${seed.targetStructure} and "${lexicalItem}" accurately.`,
+        'Informal version: This idea sounds kind of weak, and nobody really explained the risk properly.',
+        requiredWord,
+      ),
+      task(
+        'extra-2',
+        'Optional diplomatic precision',
+        `Write a professional correction that sounds precise rather than blunt. Aim for this function: ${seed.communicativeFunction}`,
+        'Context: A colleague has overstated the evidence in a report.',
+        requiredWord,
+      ),
+    ]
+  }
+
+  return [
+    task(
+      'extra-1',
+      'Optional consolidation drill',
+      `Correct and upgrade the draft. Use today's ${seed.targetStructure} and "${lexicalItem}" in a natural C1 sentence.`,
+      'Draft: The plan was good but the evidence was not strong and people ignored the problem.',
+      requiredWord,
+    ),
+    task(
+      'extra-2',
+      'Optional retrieval bridge',
+      `Write two C1 sentences combining today's language with Day ${source.day}'s ${source.targetStructure} and "${source.targetLexicalItem}".`,
+      'Context: A decision looked efficient at first but created a credibility problem.',
+      requiredWord,
+    ),
+  ]
+}
+
 const seedsByDay = new Map(lessonSeeds.map((seed) => [seed.day, seed]))
 
 export const lessons: Lesson[] = lessonSeeds.map((seed) => {
@@ -1834,6 +1936,7 @@ export const lessons: Lesson[] = lessonSeeds.map((seed) => {
     typeCode,
     skillLabel: type.skill,
     skillDescription: type.description,
+    extraTasks: makeExtraTasks(seed, source, typeCode),
     recyclingChallenge: makeRecyclingChallenge(seed, source, typeCode),
     complete: true,
   }

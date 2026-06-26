@@ -20,9 +20,9 @@ export function ExtraTasks({ lesson }: { lesson: Lesson }) {
             <p className="text-sm font-bold">Need more activation?</p>
             <p className="mt-1 text-xs leading-5 text-ink/50">
               {visibleCount === 0
-                ? `${extraTasks.length} optional rewriting challenges are ready.`
+                ? `${extraTasks.length} optional activation tasks are ready.`
                 : visibleCount < extraTasks.length
-                  ? `${extraTasks.length - visibleCount} more challenge${extraTasks.length - visibleCount === 1 ? '' : 's'} available.`
+                  ? `${extraTasks.length - visibleCount} more optional task${extraTasks.length - visibleCount === 1 ? '' : 's'} available.`
                   : 'You have opened the complete extra set.'}
             </p>
           </div>
@@ -31,9 +31,9 @@ export function ExtraTasks({ lesson }: { lesson: Lesson }) {
           <button
             type="button"
             onClick={() => setVisibleCount((count) => Math.min(extraTasks.length, count + 1))}
-            className="focus-ring inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-400 px-4 text-xs font-bold text-amber-950 shadow-md shadow-amber-300/20 hover:brightness-105"
+            className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-yellow-400 px-4 py-2.5 text-xs font-bold leading-4 text-amber-950 shadow-md shadow-amber-300/20 hover:brightness-105"
           >
-            <Plus size={15} /> Add another task
+            <Plus size={15} /> Open next task
           </button>
         )}
       </div>
