@@ -30,7 +30,7 @@ export function buildShortSessionPrompt(lesson: Lesson, answers: Record<string, 
 
   return `Act as my professional C1 English teacher.
 
-Review my entire Day ${lesson.day} practice session, but keep the feedback very brief and easy to learn from.
+Review my entire Day ${lesson.day} practice session. Keep the feedback brief, task-oriented, and useful for learning.
 
 Day type: ${lesson.dayType}
 Target structure: ${lesson.targetStructure}
@@ -39,15 +39,17 @@ Communicative function: ${lesson.communicativeFunction}
 
 ${taskBlocks.length ? taskBlocks.join('\n\n---\n\n') : '[I have not written any answers yet.]'}
 
-For each completed task, give only:
-1. What I did well: one short sentence.
-2. Main weakness: one short sentence naming the biggest grammar, vocabulary, style, or argument problem.
-3. Correction: one corrected version of my answer.
-4. Learn this: one practical rule or micro-target for next time.
+For each completed task, give exactly four short lines:
+1. Task aim: one phrase explaining what this task was testing.
+2. What worked: one sentence tied to my answer and the task aim.
+3. Main issue: one sentence. If there is no meaningful issue, write "No meaningful issue."
+4. Best version: corrected or improved version. If no correction is needed, write "No correction needed; keep your answer."
 
-Focus on big errors, repeated mistakes, and anything that blocks C1-level accuracy or clarity. Ignore small issues unless they are repeated or serious.
+Before judging, think about the instruction, prompt, target structure, target lexical item, and communicative function. Do not invent a weakness just to correct something. If the answer is accurate, natural, and satisfies the task at C1 level, say "Correct and C1-ready." If it is correct but too simple for C1, say "Correct, but below C1. Upgrade it."
 
-Do not give scores, long explanations, multiple alternatives, or general praise. Be direct, kind, and teacher-like. If an answer is correct but below C1, say: "Correct, but below C1. Upgrade it."`
+Focus only on the biggest useful teaching point for each task. Ignore tiny preferences unless they affect accuracy, naturalness, register, or the task purpose.
+
+Do not give scores, long explanations, generic advice, or multiple alternatives. End with one final line: "Next focus: ..." based on the session pattern, or "Keep doing: ..." if the session is already strong.`
 }
 
 export function buildDetailedSessionPrompt(lesson: Lesson, answers: Record<string, string>) {
